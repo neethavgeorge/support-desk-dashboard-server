@@ -15,9 +15,8 @@ const connectDB = async () => {
 };
 const app = express()
 const port = process.env.PORT
-// const userRoutes = require("./routes/userRoutes");
-// const ticketRoutes = require("./routes/ticketRoutes");
-
+app.use(cors());
+app.use(express.json());
 // Routes
 const userRoutes = require("./routes/userRoutes");
 app.use("/", userRoutes);
@@ -27,8 +26,7 @@ app.get("/", (req, res) => {
   res.send("Support Desk Server is Live");
 });
 
-app.use(cors());
-app.use(express.json());
+
 
 
 app.listen(port,()=>{

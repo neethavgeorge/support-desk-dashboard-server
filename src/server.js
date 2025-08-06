@@ -18,11 +18,18 @@ const port = process.env.PORT
 // const userRoutes = require("./routes/userRoutes");
 // const ticketRoutes = require("./routes/ticketRoutes");
 
+// Routes
+const userRoutes = require("./routes/userRoutes");
+app.use("/", userRoutes);
+
+// Default Route
+app.get("/", (req, res) => {
+  res.send("Support Desk Server is Live");
+});
+
 app.use(cors());
 app.use(express.json());
-app.get("/",(req,res)=>{
-    res.send("<h1>Suppot Desk</h1>")
-})
+
 
 app.listen(port,()=>{
     console.log("Server running...")

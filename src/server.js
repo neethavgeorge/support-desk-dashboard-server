@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect("mongodb+srv://neethavgeorge:pdcA3wbXnMJNu2A0@supportdesk.kxsxd76.mongodb.net/?retryWrites=true&w=majority&appName=supportdesk");
     console.log("MongoDB connected");
   } catch (error) {
     console.error("MongoDB connection error:", error);
@@ -14,7 +14,7 @@ const connectDB = async () => {
   }
 };
 const app = express()
-const port = process.env.PORT
+const port = process.env.PORT || 5000
 app.use(cors());
 app.use(express.json());
 // Routes

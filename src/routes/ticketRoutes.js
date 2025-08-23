@@ -1,16 +1,25 @@
 const express = require("express");
+const auth = require("../middleware/authMiddleware");
+const requireRole = require("../middleware/roleMiddleware");
+const {
+  createTicket, getTickets, getTicketById,
+  updateTicket, assignTicket, deleteTicket
+} = require("../controllers/ticketController");
+
 const router = express.Router();
-const Ticket = require("../models/Ticket");
-const protect = require("../middleware/authMiddleware");
 
-router.post("/", protect, async (req, res) => {
-  const ticket = await Ticket.create({ ...req.body, employeeId: req.user._id });
-  res.json(ticket);
-});
+// create + list
+router.post("/", auth, requireRole("employee", "support", "admin"), createTicket);
+router.get("/", auth, getTickets);
 
-router.get("/", protect, async (req, res) => {
-  const tickets = await Ticket.find().populate("employeeId");
-  res.json(tickets);
-});
+// detail
+router.get("/:id", auth, getTicketById);
+router.put("/:id", auth, requireRole("employee", "support", "admin"), updateTicket);
+
+// assign (support/admin)
+router.patch("/:id/assign", auth, requireRole("support", "admin"), assignTicket);
+
+// delete (admin)
+router.delete("/:id", auth, requireRole("admin"), deleteTicket);
 
 module.exports = router;

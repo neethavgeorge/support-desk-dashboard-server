@@ -1,9 +1,9 @@
-const bcrypt = require("bcryptjs");
-const User = require("../models/User");
-const generateToken = require("../utils/generateToken");
-const jwt = require("jsonwebtoken");
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+import generateToken from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
-exports.signup = async (req, res) => {
+export const signup = async (req, res) => {
   try {
     const { name, email, password, role = "employee" } = req.body;
     if (!name || !email || !password) return res.status(400).json({ message: "Missing fields" });
@@ -24,12 +24,12 @@ exports.signup = async (req, res) => {
   }
 };
 
-exports.login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     // Await instead of callback
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email,is_active: true });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -46,18 +46,27 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-
-    res.json({ token, user });
+console.log("TOKEN: "+token+" "+user)
+    // res.json({ token, user });
+     res.json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-exports.profile = async (req, res) => {
+export const profile = async (req, res) => {
   res.json({ success: true, user: req.user });
 };
 
-exports.logout = async (_req, res) => {
+export const logout = async (_req, res) => {
   // Stateless JWT – client should drop token. Optionally implement token blacklist if needed.
   res.json({ success: true, message: "Logged out" });
 };

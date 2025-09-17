@@ -1,42 +1,59 @@
-const Ticket = require("../models/Ticket");
+// const Ticket = require("../models/Ticket");
+import Counter from "../models/Counter.js"
+import Ticket from "../models/Ticket.js";
+import User from "../models/User.js";
+import { calculateDueDate } from "../utils/calculateDueDate.js";
+
 
 // Create ticket (employee)
-exports.createTicket = async (req, res) => {
+export const createTicket = async (req, res) => {
   try {
-    const { title, description, priority = "medium" } = req.body;
-    if (!title || !description) return res.status(400).json({ message: "Missing fields" });
+     console.log("Counter model:", Counter);
+     let counter = await Counter.findOneAndUpdate(
+      { name: "ticketId" },
+      { $inc: { value: 1 } },
+      { new: true, upsert: true } // create if doesn't exist
+    );
 
-    const ticket = await Ticket.create({
+    const { title, description, priority} = req.body;
+    if (!title || !description || !priority) return res.status(400).json({ message: "Missing fields" });
+
+    const newTicket = new Ticket({
+      ticketId: counter.value, 
       title,
       description,
       priority,
+      status: "pending",
       createdBy: req.user._id
     });
-
-    res.status(201).json({ success: true, ticket });
+newTicket.dueDate = calculateDueDate(newTicket.priority);
+console.log("TICKET: "+newTicket)
+await newTicket.save();
+    res.status(201).json({ success: true, newTicket });
   } catch (err) {
+    
     res.status(500).json({ message: "Create ticket failed", error: err.message });
   }
 };
 
 // Get tickets (employee sees own; support/admin see all)
-exports.getTickets = async (req, res) => {
-  try {
-    const filter = ["admin", "support"].includes(req.user.role) ? {} : { createdBy: req.user._id };
-    const tickets = await Ticket.find(filter)
-      .populate("createdBy", "name email role")
-      .populate("assignedTo", "name email role")
-      .sort({ createdAt: -0 });
-    res.json({ success: true, tickets });
-  } catch (err) {
-    res.status(500).json({ message: "Fetch tickets failed", error: err.message });
-  }
-};
+// exports.getTickets = async (req, res) => {
+//   try {
+//     const filter = ["admin", "support"].includes(req.user.role) ? {} : { createdBy: req.user._id };
+//     const tickets = await Ticket.find(filter)
+//       .populate("createdBy", "name email role")
+//       .populate("assignedTo", "name email role")
+//       .sort({ createdAt: -0 });
+//     res.json({ success: true, tickets });
+//   } catch (err) {
+//     res.status(500).json({ message: "Fetch tickets failed", error: err.message });
+//   }
+// };
 
-exports.getTicketById = async (req, res) => {
+export const getTicketById = async (req, res) => {
   try {
     const t = await Ticket.findById(req.params.id)
-      .populate("createdBy", "name email role")
+    .populate("createdBy", "name email role")
       .populate("assignedTo", "name email role");
     if (!t) return res.status(404).json({ message: "Ticket not found" });
 
@@ -44,6 +61,7 @@ exports.getTicketById = async (req, res) => {
     if (req.user.role === "employee" && String(t.createdBy._id) !== String(req.user._id)) {
       return res.status(403).json({ message: "Forbidden" });
     }
+    
     res.json({ success: true, ticket: t });
   } catch (err) {
     res.status(500).json({ message: "Fetch ticket failed", error: err.message });
@@ -51,7 +69,7 @@ exports.getTicketById = async (req, res) => {
 };
 
 // Update ticket (status/details). Employees can edit their own title/description; support/admin can update status/assign.
-exports.updateTicket = async (req, res) => {
+export const updateTicket = async (req, res) => {
   try {
     const t = await Ticket.findById(req.params.id);
     if (!t) return res.status(404).json({ message: "Ticket not found" });
@@ -82,22 +100,31 @@ exports.updateTicket = async (req, res) => {
 };
 
 // Assign ticket (support/admin)
-exports.assignTicket = async (req, res) => {
+export const assignTicket = async (req, res) => {
   try {
-    const { assignedTo } = req.body;
-    const t = await Ticket.findById(req.params.id);
-    if (!t) return res.status(404).json({ message: "Ticket not found" });
+    const { supportId } = req.body;
+    const ticket = await Ticket.findById(req.params.id);
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+console.log("SUPPORT: "+supportId)
+    const supportUser = await User.findById(supportId);
+    console.log("SUPPORTUSER: "+supportUser)
+    if (!supportUser || supportUser.role !== "support") {
+      return res.status(400).json({ message: "Invalid support user" });
+    }
 
-    t.assignedTo = assignedTo || null;
-    const saved = await t.save();
-    res.json({ success: true, ticket: saved });
+    ticket.assignedTo = supportUser._id;
+    ticket.status = "in-progress";
+    await ticket.save();
+
+    res.json({ message: "Ticket assigned successfully", ticket });
   } catch (err) {
-    res.status(500).json({ message: "Assign ticket failed", error: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Error assigning ticket" });
   }
 };
 
 // Delete ticket (admin only)
-exports.deleteTicket = async (req, res) => {
+export const deleteTicket = async (req, res) => {
   try {
     const t = await Ticket.findById(req.params.id);
     if (!t) return res.status(404).json({ message: "Ticket not found" });
@@ -105,5 +132,48 @@ exports.deleteTicket = async (req, res) => {
     res.json({ success: true, message: "Ticket deleted" });
   } catch (err) {
     res.status(500).json({ message: "Delete ticket failed", error: err.message });
+  }
+};
+
+export const getTickets = async (req, res) => {
+  try {
+    const { role, id } = req.user; // comes from JWT
+
+    let tickets;
+
+    if (role === "admin") {
+      tickets = await Ticket.find().populate("createdBy assignedTo", "name email role");
+    } else if (role === "support") {
+      tickets = await Ticket.find({ assignedTo: id }).populate("createdBy assignedTo", "name email role");
+    } else {
+      // employee -> only tickets created by self
+      tickets = await Ticket.find({ createdBy: id }).populate("createdBy assignedTo", "name email role");
+    }
+
+    res.json(tickets);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const resolveTicket = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Update ticket status to "Resolved"
+    const ticket = await Ticket.findByIdAndUpdate(
+      id,
+      { status: "closed", resolvedAt: new Date() },
+      { new: true }
+    );
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    res.status(200).json({ message: "Ticket resolved successfully", ticket });
+  } catch (error) {
+    console.error("Resolve Ticket Error:", error);
+    res.status(500).json({ message: "Error resolving ticket", error: error.message });
   }
 };

@@ -1,7 +1,7 @@
-const Ticket = require("../models/Ticket.js");
+import Ticket from "../models/Ticket.js";
 
 // Get dashboard stats and tickets
-const getDashboardData = async (req, res) => {
+export const  getDashboardData = async (req, res) => {
   try {
     const total = await Ticket.countDocuments();
     const pending = await Ticket.countDocuments({ status: "Pending" });
@@ -23,4 +23,4 @@ const getDashboardData = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardData };
+

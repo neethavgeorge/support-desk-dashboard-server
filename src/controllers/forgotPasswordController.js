@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport({
 
       const mailOptions = {
     from: '"Support Desk" <9755d4001@smtp-brevo.com>', // must match Brevo sender
-    to: toEmail,
+    to: user.email,
     subject: "Password Reset Request",
     html: `
       <h3>Password Reset</h3>

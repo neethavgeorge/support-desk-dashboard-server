@@ -1,7 +1,12 @@
 import User from "../models/User.js";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import SibApiV3Sdk from "sib-api-v3-sdk";
 
+const client = SibApiV3Sdk.ApiClient.instance;
+client.authentications["api-key"].apiKey = "XNYmyTM4nBZOb81K";
+
+const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;

@@ -17,7 +17,7 @@ export const forgotPassword = async (req, res) => {
     // Setup mail transporter (use real creds or service like SendGrid)
     const transporter = nodemailer.createTransport({
       service: "gmail",
-      auth: { user: "neethavgeorge@gmail.com", pass: "ibzcrqqbdeqmovlu" }
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
     });
 
     const message = `
@@ -28,7 +28,7 @@ export const forgotPassword = async (req, res) => {
 
     transporter.sendMail(
   {
-    from: "neethavgeorge@gmail.com",      // ✅ must match auth.user
+    from: process.env.EMAIL_USER,      // ✅ must match auth.user
     to: user.email,
     subject: "Test Nodemailer",
     text: "This is working with Gmail App Password!",

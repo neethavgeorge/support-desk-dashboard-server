@@ -15,35 +15,41 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `http://localhost:5000/reset-password/${resetToken}`;
 
     // Setup mail transporter (use real creds or service like SendGrid)
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-    });
+//     const transporter = nodemailer.createTransport({
+//       host: "smtp.gmail.com",
+//   port: 465,
+//   secure: true,
+//       auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+//     });
 
-    const message = `
-      <h1>Password Reset Request</h1>
-      <p>Click the link below to reset your password:</p>
-      <a href="${resetUrl}" target="_blank">${resetUrl}</a>
-    `;
-
-    transporter.sendMail(
-  {
-    from: process.env.EMAIL_USER,      // ✅ must match auth.user
-    to: user.email,
-    subject: "Test Nodemailer",
-    text: "This is working with Gmail App Password!",
-    html: message,                       // ✅ include html
+const transporter = nodemailer.createTransport({
+  host: "smtp-relay.brevo.com",
+  port: 587,
+  auth: {
+    user: "9755d4001@smtp-brevo.com",
+    pass: "XNYmyTM4nBZOb81K",
   },
-  (err, info) => {
-    if (err) {
-      console.error("Email send error:", err);
-    } else {
-      console.log("Email sent:", info.response);
-    }
+});
+
+      const mailOptions = {
+    from: '"Support Desk" <9755d4001@smtp-brevo.com>', // must match Brevo sender
+    to: toEmail,
+    subject: "Password Reset Request",
+    html: `
+      <h3>Password Reset</h3>
+      <p>Click below to reset your password:</p>
+      <a href="${resetUrl}">${resetUrl}</a>
+      <br/><br/>
+      <p>If you did not request this, ignore this email.</p>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Password reset mail sent:", info.messageId);
+  } catch (error) {
+    console.error("❌ Error sending mail:", error);
   }
-);
 
     res.status(200).json({ success: true, message: "Email sent" });
   } catch (err) {

@@ -21,7 +21,7 @@ console.log("Found user?", user);
     user.resetPasswordExpire = undefined;
 
     await user.save();
-
+    
     res.status(200).json({ success: true, message: "Password reset successful" });
   } catch (err) {
     res.status(500).json({ message: "Reset password failed", error: err.message });

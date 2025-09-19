@@ -13,7 +13,9 @@ const userSchema  = new mongoose.Schema({
   is_active: {
       type: Boolean,
       default: true, // ✅ new field (true = active, false = inactive)
-    }
+    },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date
 });
 
 userSchema.pre('save', async function () {

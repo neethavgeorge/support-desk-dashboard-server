@@ -20,7 +20,7 @@ export const forgotPassword = async (req, res) => {
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    const resetUrl = `https://support-desk-dashboard-client.vercel.app/api/auth/reset-password/${resetToken}`;
+    const resetUrl = `https://support-desk-dashboard-client.vercel.app/resetpassword/${resetToken}`;
 
     // Setup mail transporter (use real creds or service like SendGrid)
 //     const transporter = nodemailer.createTransport({

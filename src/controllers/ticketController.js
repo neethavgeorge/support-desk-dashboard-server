@@ -29,6 +29,13 @@ export const createTicket = async (req, res) => {
 newTicket.dueDate = calculateDueDate(newTicket.priority);
 console.log("TICKET: "+newTicket)
 await newTicket.save();
+ await sendEmail({
+      to: userEmail,
+      subject: "Ticket Created",
+      htmlContent: `
+        <h3> Dear ${newTicket.createdBy},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
+       `,
+    });
     res.status(201).json({ success: true, newTicket });
   } catch (err) {
     
@@ -115,7 +122,14 @@ console.log("SUPPORT: "+supportId)
     ticket.assignedTo = supportUser._id;
     ticket.status = "in-progress";
     await ticket.save();
-
+ await sendEmail({
+      to: userEmail,
+      subject: "Ticket Assigned",
+      htmlContent: `
+        <h3>Your ticket #${ticket.ticketId} has been assigned</h3>
+        <p>Assigned to: ${ticket.assignedTo}</p>
+      `,
+    });
     res.json({ message: "Ticket assigned successfully", ticket });
   } catch (err) {
     console.error(err);
@@ -170,7 +184,15 @@ export const resolveTicket = async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
-
+if(ticket){
+   await sendEmail({
+      to: userEmail,
+      subject: "Issue Resolved",
+      htmlContent: `
+        <h3>Your ticket #${ticket.ticketId} has been resolved. Please check..</h3>
+      `,
+    });
+}
     res.status(200).json({ message: "Ticket resolved successfully", ticket });
   } catch (error) {
     console.error("Resolve Ticket Error:", error);

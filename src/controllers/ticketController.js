@@ -34,7 +34,7 @@ await newTicket.save();
       to: req.user.email,
       subject: "Ticket Created",
       htmlContent: `
-        <h3> Dear ${newTicket.createdBy.name},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
+        <h3> Dear ${req.user.name},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
        `,
     });
     res.status(201).json({ success: true, newTicket });
@@ -42,6 +42,7 @@ await newTicket.save();
     
     res.status(500).json({ message: "Create ticket failed", error: err.message });
   }
+  
 };
 
 // Get tickets (employee sees own; support/admin see all)
@@ -124,7 +125,7 @@ console.log("SUPPORT: "+supportId)
     ticket.status = "in-progress";
     await ticket.save();
  await sendEmail({
-      to: userEmail,
+      to: ticket.createdBy.email,
       subject: "Ticket Assigned",
       htmlContent: `
         <h3>Your ticket #${ticket.ticketId} has been assigned</h3>

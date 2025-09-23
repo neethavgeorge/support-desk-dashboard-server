@@ -31,7 +31,7 @@ newTicket.dueDate = calculateDueDate(newTicket.priority);
 console.log("TICKET: "+newTicket)
 await newTicket.save();
  await sendEmail({
-      to: userEmail,
+      to: req.user.email,
       subject: "Ticket Created",
       htmlContent: `
         <h3> Dear ${newTicket.createdBy},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>

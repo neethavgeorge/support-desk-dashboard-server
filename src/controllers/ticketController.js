@@ -34,7 +34,7 @@ await newTicket.save();
       to: req.user.email,
       subject: "Ticket Created",
       htmlContent: `
-        <h3> Dear ${newTicket.createdBy},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
+        <h3> Dear ${newTicket.createdBy.name},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
        `,
     });
     res.status(201).json({ success: true, newTicket });

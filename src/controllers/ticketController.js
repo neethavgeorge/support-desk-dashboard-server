@@ -3,6 +3,7 @@ import Counter from "../models/Counter.js"
 import Ticket from "../models/Ticket.js";
 import User from "../models/User.js";
 import { calculateDueDate } from "../utils/calculateDueDate.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 
 // Create ticket (employee)

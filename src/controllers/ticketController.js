@@ -29,12 +29,13 @@ export const createTicket = async (req, res) => {
     });
 newTicket.dueDate = calculateDueDate(newTicket.priority);
 console.log("TICKET: "+newTicket)
+    const user = await User.findById(req.user._id);
 await newTicket.save();
  await sendEmail({
       to: req.user.email,
       subject: "Ticket Created",
       htmlContent: `
-        <h3> Dear ${req.user.name},A request for support has been created and Ticket ID is #${newTicket.ticketId}</h3>
+        <h3> Dear ${user.name}</h3>,<p><h4> A request for support has been created and Ticket ID is #${newTicket.ticketId}</h4></p>
        `,
     });
     res.status(201).json({ success: true, newTicket });
@@ -124,12 +125,14 @@ console.log("SUPPORT: "+supportId)
     ticket.assignedTo = supportUser._id;
     ticket.status = "in-progress";
     await ticket.save();
+    const user = await User.findById(ticket.createdBy);
  await sendEmail({
-      to: ticket.createdBy.email,
+      to: tser.email,
       subject: "Ticket Assigned",
       htmlContent: `
-        <h3>Your ticket #${ticket.ticketId} has been assigned</h3>
-        <p>Assigned to: ${ticket.assignedTo}</p>
+      <h3>Dear ${user.name}</h3>
+        <p><h4>Your ticket #${ticket.ticketId} has been assigned</h4>
+        <p>Assigned to: ${ticket.assignedTo}</p></p>
       `,
     });
     res.json({ message: "Ticket assigned successfully", ticket });
@@ -186,12 +189,14 @@ export const resolveTicket = async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
+     const user = await User.findById(ticket.createdBy.id);
 if(ticket){
    await sendEmail({
-      to: userEmail,
+      to: user.email,
       subject: "Issue Resolved",
       htmlContent: `
-        <h3>Your ticket #${ticket.ticketId} has been resolved. Please check..</h3>
+        <h3>Dear ${user.name}</h3>
+        <p><h4>Your ticket #${ticket.ticketId} has been resolved. Please check..</h4></p>
       `,
     });
 }

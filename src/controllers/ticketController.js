@@ -132,7 +132,7 @@ console.log("SUPPORT: "+supportId)
       htmlContent: `
       <h3>Dear ${user.name}</h3>
         <p><h4>Your ticket #${ticket.ticketId} has been assigned</h4>
-        <p>Assigned to: ${ticket.assignedTo}</p></p>
+        <p>Assigned to: ${supportUser.name}</p></p>
       `,
     });
     res.json({ message: "Ticket assigned successfully", ticket });

@@ -127,7 +127,7 @@ console.log("SUPPORT: "+supportId)
     await ticket.save();
     const user = await User.findById(ticket.createdBy);
  await sendEmail({
-      to: tser.email,
+      to: user.email,
       subject: "Ticket Assigned",
       htmlContent: `
       <h3>Dear ${user.name}</h3>

@@ -189,7 +189,7 @@ export const resolveTicket = async (req, res) => {
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
-     const user = await User.findById(ticket.createdBy.id);
+     const user = await User.findById(ticket.createdBy);
 if(ticket){
    await sendEmail({
       to: user.email,
